@@ -1,0 +1,31 @@
+{
+  "result": {
+    "model": "bench-qwen38-27b",
+    "provider": "ollama",
+    "runs": [
+      {
+        "output_tokens": 161,
+        "prompt_tokens": 22,
+        "total_ms": 23841.9826,
+        "tps": 7.078300778718601,
+        "ttft_ms": 956.875
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 28,
+        "total_ms": 43330.744,
+        "tps": 7.097748920538855,
+        "ttft_ms": 966.969
+      }
+    ],
+    "summary": {
+      "avg_output_tokens": 230.5,
+      "avg_total_ms": 33586.3633,
+      "avg_tps": 7.088024849628728,
+      "avg_ttft_ms": 961.922,
+      "max_tps": 7.097748920538855,
+      "min_tps": 7.078300778718601,
+      "num_runs": 2
+    }
+  }
+}

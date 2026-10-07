@@ -1,0 +1,38 @@
+{
+  "result": {
+    "model": "bench-qwen35-9b",
+    "provider": "ollama",
+    "runs": [
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 22,
+        "total_ms": 3062.5298,
+        "tps": 100.52032671786725,
+        "ttft_ms": 43.723
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 28,
+        "total_ms": 3095.5794,
+        "tps": 99.51559127354415,
+        "ttft_ms": 45.211
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 33,
+        "total_ms": 3070.6536,
+        "tps": 100.42715014528461,
+        "ttft_ms": 45.799
+      }
+    ],
+    "summary": {
+      "avg_output_tokens": 300.0,
+      "avg_total_ms": 3076.254266666667,
+      "avg_tps": 100.15435604556534,
+      "avg_ttft_ms": 44.911,
+      "max_tps": 100.52032671786725,
+      "min_tps": 99.51559127354415,
+      "num_runs": 3
+    }
+  }
+}

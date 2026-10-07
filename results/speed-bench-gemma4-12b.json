@@ -1,0 +1,38 @@
+{
+  "result": {
+    "model": "bench-gemma4-12b",
+    "provider": "ollama",
+    "runs": [
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 27,
+        "total_ms": 4491.148,
+        "tps": 68.10739537341922,
+        "ttft_ms": 65.922
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 34,
+        "total_ms": 4484.2087,
+        "tps": 68.30895045346897,
+        "ttft_ms": 50.6
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 39,
+        "total_ms": 4480.963,
+        "tps": 68.43114082239177,
+        "ttft_ms": 51.727
+      }
+    ],
+    "summary": {
+      "avg_output_tokens": 300.0,
+      "avg_total_ms": 4485.4399,
+      "avg_tps": 68.28249554975999,
+      "avg_ttft_ms": 56.083,
+      "max_tps": 68.43114082239177,
+      "min_tps": 68.10739537341922,
+      "num_runs": 3
+    }
+  }
+}

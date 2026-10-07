@@ -1,0 +1,38 @@
+{
+  "result": {
+    "model": "bench-empero9b-q4",
+    "provider": "ollama",
+    "runs": [
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 22,
+        "total_ms": 3130.1002,
+        "tps": 98.49383231622036,
+        "ttft_ms": 43.8
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 28,
+        "total_ms": 3162.761,
+        "tps": 97.6318102662452,
+        "ttft_ms": 51.834
+      },
+      {
+        "output_tokens": 300,
+        "prompt_tokens": 33,
+        "total_ms": 3125.6952,
+        "tps": 98.79535530102946,
+        "ttft_ms": 50.792
+      }
+    ],
+    "summary": {
+      "avg_output_tokens": 300.0,
+      "avg_total_ms": 3139.5188,
+      "avg_tps": 98.30699929449834,
+      "avg_ttft_ms": 48.80866666666666,
+      "max_tps": 98.79535530102946,
+      "min_tps": 97.6318102662452,
+      "num_runs": 3
+    }
+  }
+}

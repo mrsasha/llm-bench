@@ -1,0 +1,22 @@
+# lm-eval request cache (sqlite, rebuilt on demand)
+cache/
+
+# Run logs and scratch output
+results/log-*.txt
+results/*.err
+results/ollama-serve.log
+results/smoke.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

@@ -20,3 +20,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# Per-run logs of run_coding.sh
+results/*/run.log

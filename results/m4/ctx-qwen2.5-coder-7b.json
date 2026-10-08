@@ -1,0 +1,39 @@
+{
+  "model": "qwen2.5-coder:7b",
+  "native_ctx": 32768,
+  "capabilities": [
+    "completion",
+    "tools",
+    "insert"
+  ],
+  "runner": "llamacpp",
+  "size_8k_gb": 4.91,
+  "size_32k_gb": 5.54,
+  "gpu_pct": 100,
+  "speed": [
+    {
+      "prompt_tokens": 748,
+      "prompt_tps": 166.9,
+      "gen_tokens": 191,
+      "gen_tps": 13.5,
+      "size_after_gb": 5.541
+    },
+    {
+      "prompt_tokens": 5906,
+      "prompt_tps": 102.7,
+      "gen_tokens": 256,
+      "gen_tps": 11.9,
+      "size_after_gb": 5.541
+    },
+    {
+      "prompt_tokens": 17053,
+      "prompt_tps": 86.8,
+      "gen_tokens": 130,
+      "gen_tps": 10.2,
+      "size_after_gb": 5.541
+    }
+  ],
+  "size_filled_gb": 5.54,
+  "kv_kb_per_token": 24.9,
+  "est_max_ctx": 32768
+}

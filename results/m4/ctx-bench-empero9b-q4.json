@@ -1,0 +1,39 @@
+{
+  "model": "bench-empero9b-q4",
+  "native_ctx": 262144,
+  "capabilities": [
+    "tools",
+    "thinking",
+    "completion"
+  ],
+  "runner": "llamacpp",
+  "size_8k_gb": 5.93,
+  "size_32k_gb": 5.91,
+  "gpu_pct": 100,
+  "speed": [
+    {
+      "prompt_tokens": 841,
+      "prompt_tps": 152.0,
+      "gen_tokens": 201,
+      "gen_tps": 17.5,
+      "size_after_gb": 5.907
+    },
+    {
+      "prompt_tokens": 6726,
+      "prompt_tps": 150.9,
+      "gen_tokens": 256,
+      "gen_tps": 17.0,
+      "size_after_gb": 5.907
+    },
+    {
+      "prompt_tokens": 19844,
+      "prompt_tps": 122.5,
+      "gen_tokens": 256,
+      "gen_tps": 13.1,
+      "size_after_gb": 5.907
+    }
+  ],
+  "size_filled_gb": 5.91,
+  "kv_kb_per_token": null,
+  "est_max_ctx": null
+}

@@ -1,0 +1,41 @@
+{
+  "model": "gemma4:12b",
+  "native_ctx": 262144,
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "runner": "mlx",
+  "size_8k_gb": 7.75,
+  "size_32k_gb": 7.75,
+  "gpu_pct": 100,
+  "speed": [
+    {
+      "prompt_tokens": 903,
+      "prompt_tps": 85.1,
+      "gen_tokens": 230,
+      "gen_tps": 13.6,
+      "size_after_gb": 7.748
+    },
+    {
+      "prompt_tokens": 6843,
+      "prompt_tps": 72.3,
+      "gen_tokens": 256,
+      "gen_tps": 14.9,
+      "size_after_gb": 9.184
+    },
+    {
+      "prompt_tokens": 21940,
+      "prompt_tps": 68.6,
+      "gen_tokens": 246,
+      "gen_tps": 13.1,
+      "size_after_gb": 10.907
+    }
+  ],
+  "size_filled_gb": 10.91,
+  "kv_kb_per_token": 141.6,
+  "est_max_ctx": 28212
+}

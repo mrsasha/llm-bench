@@ -1,0 +1,40 @@
+{
+  "model": "qwen3.5:9b",
+  "native_ctx": 262144,
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "runner": "mlx",
+  "size_8k_gb": 7.74,
+  "size_32k_gb": 7.74,
+  "gpu_pct": 100,
+  "speed": [
+    {
+      "prompt_tokens": 798,
+      "prompt_tps": 169.0,
+      "gen_tokens": 168,
+      "gen_tps": 24.2,
+      "size_after_gb": 7.98
+    },
+    {
+      "prompt_tokens": 6549,
+      "prompt_tps": 158.5,
+      "gen_tokens": 256,
+      "gen_tps": 24.0,
+      "size_after_gb": 8.379
+    },
+    {
+      "prompt_tokens": 18545,
+      "prompt_tps": 139.5,
+      "gen_tokens": 256,
+      "gen_tps": 20.2,
+      "size_after_gb": 9.279
+    }
+  ],
+  "size_filled_gb": 9.28,
+  "kv_kb_per_token": 76.1,
+  "est_max_ctx": 52638
+}

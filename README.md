@@ -2,8 +2,10 @@
 
 Speed and quality benchmarks for local LLMs on consumer hardware, run through
 [Ollama](https://ollama.com) and [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness).
-Two runs so far: a general-quality comparison on an RTX 5070 PC (below), and a
-[coding-focused run on an Apple M4 Mac](#apple-m4-coding-models-for-a-16-gb-mac).
+Three runs so far: a general-quality comparison on an RTX 5070 PC (below), a
+[coding-focused run on an Apple M4 Mac](#apple-m4-coding-models-for-a-16-gb-mac),
+and [the same coding run on the PC](#rtx-5070-pc-the-same-coding-run), with a
+[PC vs Mac comparison](#pc-vs-mac).
 
 Tools like [llmfit](https://github.com/AlexsJones/llmfit) and
 [llm-checker](https://www.npmjs.com/package/llm-checker) tell you which models
@@ -30,7 +32,7 @@ Empero reports these numbers on its model card:
 | CPU | Intel Core Ultra 7 265KF, 20 cores |
 | RAM | 32 GB |
 | OS | Windows 10 Pro |
-| Runtime | Ollama 0.35.1, lm-eval 0.4.14.dev0 |
+| Runtime | Ollama 0.35.1 (Empero quality run), 0.40.0 (everything else); lm-eval 0.4.14.dev0 |
 
 ## Models
 
@@ -63,19 +65,34 @@ Empero's distill has the same speed as the Qwen3.5 model it was built from.
 Ranges are 95% margins. GSM8K and MMLU use lm-eval's `flexible-extract` filter.
 IFEval is prompt-level strict accuracy.
 
-| Model | GSM8K CoT (n=50) | IFEval (n=50) | MMLU CoT (n=57, 1 per subject) |
+| Model | GSM8K CoT (n=50) | IFEval (n=50) | MMLU CoT (n=57, 1 per subject) | Empty answers |
+|---|---|---|---|---|
+| Empero 9B Q4_K_M | 0.94 ± 0.07 | 0.80 ± 0.11 | 0.84 ± 0.09 | 6/157 |
+| Qwen3.5 9B Q4_K_M | 0.94 ± 0.07 | 0.80 ± 0.11 | 0.89 ± 0.08 | 8/157 |
+| Gemma 4 12B Q4_K_M | 0.90 ± 0.08 | 0.82 ± 0.11 | 0.91 ± 0.07 | 12/157 |
+| Qwen3.8 27B Q4_K_M (n=15 each) | 0.93 ± 0.13 | 0.87 ± 0.17 | 0.87 ± 0.17 | 0/45 |
+
+The same 15 + 15 + 15 questions the 27B ran, for every model:
+
+| Model | GSM8K CoT | IFEval | MMLU CoT |
 |---|---|---|---|
-| Empero 9B Q4_K_M | 0.94 ± 0.07 | 0.80 ± 0.11 | 0.84 ± 0.09 |
-| Qwen3.5 9B Q4_K_M | *pending* | *pending* | *pending* |
-| Gemma 4 12B Q4_K_M | *pending* | *pending* | *pending* |
-| Qwen3.8 27B Q4_K_M | *pending (smaller subset)* | | |
+| Empero 9B Q4_K_M | 0.93 | 0.80 | 0.80 |
+| Qwen3.5 9B Q4_K_M | 0.93 | 0.93 | 0.87 |
+| Gemma 4 12B Q4_K_M | 0.73 | 0.73 | 1.00 |
+| Qwen3.8 27B Q4_K_M | 0.93 | 0.87 | 0.87 |
 
-Early observation: 6 of Empero's 50 IFEval prompts came back with an empty
-answer, most likely because the model used the whole 8,192-token budget on
-thinking. Those 6 are 6 of its 10 IFEval misses.
+- **Empero's distill is not better than its base here.** It ties Qwen3.5 9B on
+  GSM8K and IFEval and is 5 points lower on MMLU, within noise. Empero's
+  +20-point MMLU gain doesn't reproduce: the base already scores 0.89 in this
+  setup, against 0.546 in Empero's eval.
+- **All four are close.** With 50–57 questions per test, differences under ~10
+  points are noise; on the 15-question subset, under ~20.
+- **The 27B isn't ahead** on the shared questions, and at 7 tokens/s (half of
+  it on the CPU) it isn't worth it on a 12 GB card.
+- **Empty answers** count as wrong. They're most likely prompts where the
+  model spent the whole 8,192-token budget thinking. Gemma had the most (12).
 
-Don't read too much into a single column until the baselines are in. With
-50–57 questions per test, differences under ~10 points are within noise.
+This run predates the memory log, so it has no memory numbers.
 
 ## Method
 
@@ -203,7 +220,8 @@ without finishing count as failures: 9 for `qwen3.5:4b`, 4 each for
   runs on the CPU), so a 16K prompt takes about 12 minutes. Its speeds were
   measured at 32K; capped at ~24K it would be somewhat faster.
 - **Empero's distill scores below its Qwen3.5 base on coding** (0.66 vs 0.78),
-  within noise, but in the same direction as the open question above.
+  within noise. On the PC it's the other way round (0.70 vs 0.62), so neither
+  is better.
 - `rnj-1:8b` was a candidate but doesn't load in Ollama 0.40.0: llama.cpp
   aborts with `GGML_ASSERT(hparams.is_swa_any())`.
 - Models of 24B and up (Devstral Small 2, Qwen3-Coder 30B, Qwen3.6/3.8 27B) were
@@ -250,12 +268,102 @@ ollama create bench-empero9b-q4 -f modelfiles/bench-empero9b-q4
 
 ./run_coding.sh                  # results/m4; waits for models still being pulled, resumes
 python3 analyze_coding.py        # the table above
-python3 analyze_coding.py results/m4 results/rtx5070   # machines side by side
+python3 analyze_coding.py results/m4 results/rtx5070-q8   # machines side by side
 ```
 
+For comparable numbers on another machine, start Ollama with the same settings
+(`OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`) and pass a results
+dir, e.g. on Windows with Git Bash:
+`PYTHON=python GPU_BUDGET_GB=12.0 ./run_coding.sh results/rtx5070-q8 <models>`.
+
 `code_bench.py` runs code the model wrote on your machine (in a temp directory,
-with a timeout). A full run took about 8.5 hours on the M4, most of it on the
-thinking models.
+with a timeout). A full run took about 8.5 hours on the M4 and about 2 hours on
+the RTX 5070, most of it on the thinking models.
+
+## RTX 5070 PC: the same coding run
+
+The [coding benchmark](#apple-m4-coding-models-for-a-16-gb-mac) on the PC from
+[Hardware](#hardware): same models, same 50 problems, same scripts. Ollama
+0.40.0, llama.cpp for every model, with the Mac's settings: flash attention on
+and a `q8_0` KV cache (`OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`).
+The GPU has 12.8 GB; the idle Windows desktop takes about 1.3 GB of it.
+
+| Model | Coding pass@1 | Median time / problem | Gen tok/s (short → 17–25K prompt) | Prompt tok/s | Wait for a 16K prompt | Usable ctx (12 GB) | Native ctx | VRAM used | RAM used (load / peak) | Thinking |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `qwen2.5-coder:14b` | 0.80 ±0.11 | 5 s | 28 → 9 | 1,502 | 11 s | ~26K | 32K | 10.5 GB | 3.5 / 5.7 GB | no |
+| `qwen2.5-coder:7b` | 0.74 ±0.12 | 3 s | 112 → 83 | 4,236 | 4 s | 32K | 32K | 5.8 GB | 1.0 / 1.3 GB | no |
+| Empero 9B Q4_K_M | 0.70 ±0.13 | 6 s | 98 → 91 | 3,900 | 4 s | 256K | 256K | 6.1 GB | 2.0 / 7.1 GB | yes |
+| `gemma4:12b` | 0.70 ±0.13 | 38 s | 65 → 61 | 2,603 | 6 s | not measured | 256K | 8.6 GB | 2.6 / 9.6 GB | yes |
+| `qwen3.5:4b` | 0.70 ±0.13 | 35 s | 137 → 117 | 5,640 | 3 s | 256K | 256K | 4.3 GB | 1.2 / 13.2 GB | yes |
+| `qwen3.5:9b` | 0.62 ±0.13 | 28 s | 88 → 84 | 3,821 | 4 s | 256K | 256K | 7.3 GB | 1.8 / 7.0 GB | yes |
+
+Answers that hit the 8,192-token limit: 9 for `qwen3.5:9b`, 8 for
+`gemma4:12b`, 6 for `qwen3.5:4b`, 1 for Empero.
+
+- **Again, quality is a tie.** 0.62–0.80 is within the ±0.12 margin.
+- **Everything that fits in VRAM is fast.** A 16K-token prompt takes seconds,
+  and the non-thinking `qwen2.5-coder:7b` answers in 3 s.
+- **`qwen2.5-coder:14b` scored highest but doesn't quite fit at 32K context**
+  (12.8 GB, 81% on the GPU), so generation falls to 9 tokens/s with a long
+  prompt. At ~26K context it would fit.
+- **The 9B thinking models get the full 256K context** in 12 GB with the
+  `q8_0` cache, as does the 4B.
+- **VRAM used** is how far GPU memory rose above the idle desktop. **RAM used**
+  is how far free system RAM fell: at load, and at peak. The peak is mostly
+  the prompt cache Ollama's llama.cpp runner keeps in system RAM (up to
+  8 GiB), which fills as prompts go by, so a 4B model on the GPU can still
+  take 13 GB of RAM over a long session.
+- **Usable ctx** uses a 12 GB budget (`GPU_BUDGET_GB=12.0`). With the
+  desktop's 1.3 GB, about 11.5 GB is really free, so expect a few percent less.
+  For `gemma4:12b` the loaded size didn't grow from 8K to 32K context
+  (sliding-window attention), so there's no per-token cost to extrapolate from.
+
+### `f16` vs `q8_0` KV cache
+
+The PC first ran with Ollama's defaults (`f16` KV cache, flash attention
+`auto`); those results are in [`results/rtx5070/`](results/rtx5070/). The
+`q8_0` cache halves the memory per token of context and didn't measurably
+change quality: scores moved by up to 0.08 in both directions, with no pattern.
+It mattered most for `qwen2.5-coder:14b`:
+
+| `qwen2.5-coder:14b` | `f16` | `q8_0` |
+|---|---|---|
+| Ollama size @32K | 15.8 GB | 12.8 GB |
+| On the GPU | 66% | 81% |
+| Gen tok/s (short → long prompt) | 20 → 6 | 28 → 9 |
+| Usable ctx (12 GB) | ~15K | ~26K |
+
+## PC vs Mac
+
+The coding run on both machines, both with flash attention and a `q8_0` KV
+cache. Each cell is **Mac / PC**.
+
+| Model | Runner | Coding pass@1 | Median time / problem | Gen tok/s | Prompt tok/s | Wait for a 16K prompt | Ollama size @32K |
+|---|---|---|---|---|---|---|---|
+| `qwen2.5-coder:14b` | llama.cpp / llama.cpp | 0.84 / 0.80 | 26 s / 5 s | 9 / 28 | 22 / 1,502 | 11.9 min / 11 s | 12.8 / 12.8 GB |
+| `qwen2.5-coder:7b` | llama.cpp / llama.cpp | 0.80 / 0.74 | 10 s / 3 s | 14 / 112 | 87 / 4,236 | 3.1 min / 4 s | 5.5 / 5.7 GB |
+| `gemma4:12b` | MLX / llama.cpp | 0.78 / 0.70 | 138 s / 38 s | 14 / 65 | 69 / 2,603 | 3.9 min / 6 s | 7.8 / 7.9 GB |
+| `qwen3.5:9b` | MLX / llama.cpp | 0.78 / 0.62 | 71 s / 28 s | 24 / 88 | 140 / 3,821 | 1.9 min / 4 s | 7.7 / 6.2 GB |
+| Empero 9B Q4_K_M | llama.cpp / llama.cpp | 0.66 / 0.70 | 39 s / 6 s | 18 / 98 | 122 / 3,900 | 2.2 min / 4 s | 5.9 / 5.9 GB |
+| `qwen3.5:4b` | MLX / llama.cpp | 0.58 / 0.70 | 39 s / 35 s | 26 / 137 | 212 / 5,640 | 1.3 min / 3 s | 4.1 / 3.8 GB |
+
+Generated by `python analyze_coding.py results/m4 results/rtx5070-q8`.
+
+- **Scores agree within noise.** The largest gap is 0.16 (`qwen3.5:9b`); the
+  margin on a difference between two 50-problem runs is about ±0.17. The
+  ranking shuffles; the conclusion that the six are close doesn't.
+- **The PC generates 3–8× faster and reads prompts 27–68× faster.** On the Mac
+  a fresh 16K-token agent session waits minutes before the first token; on the
+  PC, seconds.
+- **Memory now matches** for the models both machines run on llama.cpp
+  (`qwen2.5-coder`, Empero). For the MLX models the Mac size is at load: MLX
+  allocates as the context fills.
+- **Time per problem gains less than raw speed** for the `qwen3.5` models: on
+  the PC (llama.cpp) they generated 2–4× more tokens per problem than on the
+  Mac (MLX), median 2,373 vs 1,091 for the 9B and 4,493 vs 1,030 for the 4B.
+  The other models generated about the same on both.
+- Measured memory (the memory log) exists only for the PC; the M4 run
+  predates it.
 
 ## Layout
 
@@ -271,14 +379,17 @@ analyze_coding.py  Builds the coding table from results/m4/, or compares several
 mem_monitor.py     Samples VRAM, system RAM and Ollama's memory during a run (CSV)
 results/           speed-*.json from llmfit, quality-*.json from lm-eval (with per-sample logs)
 results/m4/        ctx-*.json and code-*.jsonl (every answer, pass/fail, timing) from the M4 run
+results/rtx5070-q8/ The same for the RTX 5070 PC (q8_0 KV cache), plus mem.csv (the memory log)
+results/rtx5070/   The PC run with the default f16 KV cache
 ```
 
 ## Caveats
 
 - Small samples. Treat these numbers as a sanity check of the published claims,
   not as a leaderboard.
-- Single machine, single seed, Q4 quantization. Empero's own numbers come from an
-  unpublished harness and likely a different precision.
+- Single seed, Q4 quantization. Each quality number comes from one machine.
+  Empero's own numbers come from an unpublished harness and likely a different
+  precision.
 - The 27B model doesn't fit in 12 GB of VRAM, so its speed reflects CPU offload,
   not the model itself.
 

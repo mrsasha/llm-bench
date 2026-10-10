@@ -85,6 +85,7 @@ result = {
     "model": args.model, "native_ctx": native_ctx, "capabilities": caps,
     "runner": big.get("runner"), "size_8k_gb": round(small["size"] / 1e9, 2),
     "size_32k_gb": round(big["size"] / 1e9, 2), "gpu_pct": round(100 * big["size_vram"] / big["size"]),
+    "gpu_budget_gb": args.gpu_budget_gb,
     "speed": [],
 }
 print(f"runner {result['runner']}: {result['size_8k_gb']} GB @8K, {result['size_32k_gb']} GB @32K, {result['gpu_pct']}% GPU", flush=True)

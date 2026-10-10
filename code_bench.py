@@ -6,7 +6,9 @@ well with thinking models behind Ollama. This asks for a complete solution in a
 wall time and token counts so quality and speed come from the same answers.
 
 Each finished problem is appended to the --out JSONL file; a rerun skips
-problems already in it, so an interrupted run resumes.
+problems already in it, so an interrupted run resumes. --rescore reruns the
+tests on the answers already in the file without asking the model again (for
+example after fixing the test environment).
 
 WARNING: this executes model-generated code on this machine (subprocess, temp
 dir, timeout). Only run it with models you trust to that degree.
@@ -33,7 +35,18 @@ ap.add_argument("--n-humaneval", type=int, default=40, help="problems, evenly sp
 ap.add_argument("--n-mbpp", type=int, default=40, help="problems, evenly spaced over 378")
 ap.add_argument("--max-tokens", type=int, default=8192, help="thinking + answer budget")
 ap.add_argument("--test-timeout", type=int, default=60, help="seconds per test run")
+ap.add_argument("--rescore", action="store_true", help="retest the saved answers in --out, no model calls")
 args = ap.parse_args()
+
+# Tests run in a fresh interpreter, ignoring PYTHON* variables. Not -I: that
+# also drops user site-packages, where `pip install --user` puts numpy.
+TEST_PYTHON = [sys.executable, "-E"]
+
+# The EvalPlus tests import numpy; without it every problem "fails" with
+# ModuleNotFoundError and the scores are silently all zero. Check with the
+# same interpreter flags the tests use.
+if subprocess.run([*TEST_PYTHON, "-c", "import numpy"], capture_output=True).returncode:
+    sys.exit("code_bench: the EvalPlus tests need numpy (pip install numpy)")
 
 
 def spaced(n_total, n):
@@ -42,9 +55,9 @@ def spaced(n_total, n):
     return [round(i * (n_total - 1) / max(n - 1, 1)) for i in range(n)]
 
 
-def problems():
+def problems(n_humaneval, n_mbpp):
     he = load_dataset("evalplus/humanevalplus", split="test")
-    for i in spaced(len(he), args.n_humaneval):
+    for i in spaced(len(he), n_humaneval):
         d = he[i]
         yield {
             "id": d["task_id"],
@@ -56,7 +69,7 @@ def problems():
             "test": f"{d['test']}\n\ncheck({d['entry_point']})\n",
         }
     mb = load_dataset("evalplus/mbppplus", split="test")
-    for i in spaced(len(mb), args.n_mbpp):
+    for i in spaced(len(mb), n_mbpp):
         d = mb[i]
         yield {
             "id": f"Mbpp/{d['task_id']}",
@@ -82,7 +95,7 @@ def run_tests(code, test):
         f.write_text(code + "\n\n" + test, encoding="utf-8")
         try:
             r = subprocess.run(
-                [sys.executable, "-I", str(f)],
+                [*TEST_PYTHON, str(f)],
                 cwd=tmp, capture_output=True, text=True, timeout=args.test_timeout,
             )
             return r.returncode == 0, r.stderr[-500:]
@@ -104,12 +117,24 @@ def chat(prompt):
 
 
 out = Path(args.out)
+
+if args.rescore:
+    recs = [json.loads(l) for l in out.read_text(encoding="utf-8").splitlines() if l.strip()]
+    tests = {p["id"]: p["test"] for p in problems(10**6, 10**6)}  # all of them
+    for rec in recs:
+        answer = rec["answer"]
+        passed, err = run_tests(extract_code(answer), tests[rec["id"]]) if answer.strip() else (False, "empty answer")
+        rec["passed"], rec["error"] = passed, "" if passed else err
+        print(f"{rec['id']:<16} {'PASS' if passed else 'fail'}", flush=True)
+    out.write_text("".join(json.dumps(r) + "\n" for r in recs), encoding="utf-8")
+    sys.exit()
+
 out.parent.mkdir(parents=True, exist_ok=True)
 done = set()
 if out.exists():
     done = {json.loads(l)["id"] for l in out.read_text(encoding="utf-8").splitlines() if l.strip()}
 
-for p in problems():
+for p in problems(args.n_humaneval, args.n_mbpp):
     if p["id"] in done:
         continue
     t0 = time.time()

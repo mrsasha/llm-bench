@@ -1,0 +1,42 @@
+{
+  "model": "gemma4:12b",
+  "native_ctx": 262144,
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "runner": "llamacpp",
+  "size_8k_gb": 8.37,
+  "size_32k_gb": 8.09,
+  "gpu_pct": 100,
+  "gpu_budget_gb": 12.0,
+  "speed": [
+    {
+      "prompt_tokens": 905,
+      "prompt_tps": 2342.5,
+      "gen_tokens": 228,
+      "gen_tps": 66.1,
+      "size_after_gb": 8.092
+    },
+    {
+      "prompt_tokens": 6710,
+      "prompt_tps": 2798.5,
+      "gen_tokens": 256,
+      "gen_tps": 64.7,
+      "size_after_gb": 8.092
+    },
+    {
+      "prompt_tokens": 21361,
+      "prompt_tps": 2662.1,
+      "gen_tokens": 256,
+      "gen_tps": 63.2,
+      "size_after_gb": 8.092
+    }
+  ],
+  "size_filled_gb": 8.09,
+  "kv_kb_per_token": null,
+  "est_max_ctx": null
+}

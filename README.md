@@ -113,8 +113,23 @@ Don't read too much into a single column until the baselines are in. With
 ## Reproduce
 
 Prerequisites: Ollama, Python 3, and lm-evaluation-harness with the IFEval
-dependencies (`pip install langdetect immutabledict nltk`). `llmfit` is optional,
-for the speed numbers.
+dependencies (`pip install langdetect immutabledict nltk`). The coding run also
+needs `datasets` and `numpy` (the EvalPlus tests import numpy; `code_bench.py`
+refuses to start without it). `llmfit` is optional,
+for the speed numbers. `psutil` (`pip install psutil`) is optional, for the
+system-RAM columns of the memory log.
+
+Both run scripts sample memory every 5 s while they run
+([`mem_monitor.py`](mem_monitor.py)): the models Ollama has loaded and its size
+estimate for them, VRAM in use on the whole GPU (`nvidia-smi`; blank on Apple),
+available system RAM, and the RAM of the Ollama processes. The samples go to
+`results/mem-quality.csv` and `<results-dir>/mem.csv`. The analyze scripts
+report memory *used* per model: how far VRAM rose and free RAM fell compared
+with the idle samples just before the model loaded, so the desktop and other
+apps don't count. On a PC that's VRAM plus system RAM; on Apple, where the GPU
+shares system memory, RAM alone covers it. RAM is shown at load and at peak:
+Ollama's llama.cpp runner keeps a prompt cache in system RAM (up to 8 GiB by
+default) that fills as prompts go by, so the peak is mostly that cache.
 
 ```bash
 # 1. Pull the models
@@ -235,6 +250,7 @@ ollama create bench-empero9b-q4 -f modelfiles/bench-empero9b-q4
 
 ./run_coding.sh                  # results/m4; waits for models still being pulled, resumes
 python3 analyze_coding.py        # the table above
+python3 analyze_coding.py results/m4 results/rtx5070   # machines side by side
 ```
 
 `code_bench.py` runs code the model wrote on your machine (in a temp directory,
@@ -251,7 +267,8 @@ analyze.py         Builds the result tables from results/quality-*.json
 code_bench.py      HumanEval+/MBPP+ through Ollama; runs the tests, records timing
 ctx_bench.py       Prompt/generation speed at depth and usable context per model
 run_coding.sh      The coding run (ctx_bench + code_bench per model)
-analyze_coding.py  Builds the coding table from results/m4/
+analyze_coding.py  Builds the coding table from results/m4/, or compares several results dirs
+mem_monitor.py     Samples VRAM, system RAM and Ollama's memory during a run (CSV)
 results/           speed-*.json from llmfit, quality-*.json from lm-eval (with per-sample logs)
 results/m4/        ctx-*.json and code-*.jsonl (every answer, pass/fail, timing) from the M4 run
 ```

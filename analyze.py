@@ -8,6 +8,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from mem_monitor import peaks
+
 RESULTS = Path(__file__).parent / "results"
 
 def as_float(v):
@@ -81,6 +83,17 @@ def main():
                 keys = scores[ref][f].keys() & scores[m][f].keys()
                 row.append(fmt([scores[m][f][k] for k in keys]))
             print(f"| {m} | " + " | ".join(row) + " |")
+
+    # written by run_all.sh through mem_monitor.py; absent for older runs
+    mem = peaks(RESULTS / "mem-quality.csv")
+    if mem:
+        gbs = lambda v: f"{v:.1f} GB" if v is not None else "-"
+        print("\n## Memory used (on top of the idle machine)\n")
+        print("| model | Ollama size | VRAM used | RAM used at load | RAM used, peak |")
+        print("|---|---|---|---|---|")
+        for m in sorted(mem):
+            p = mem[m]
+            print(f"| {m} | {gbs(p['size'])} | {gbs(p['vram'])} | {gbs(p['ram_load'])} | {gbs(p['ram'])} |")
 
 
 if __name__ == "__main__":

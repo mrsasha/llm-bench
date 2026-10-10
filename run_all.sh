@@ -46,7 +46,7 @@ fi
 
 if $fresh; then
   shopt -s nullglob
-  old=(results/quality-*.json results/log-*.txt)
+  old=(results/quality-*.json results/log-*.txt results/mem-quality.csv)
   if (( ${#old[@]} )) || [[ -d cache ]]; then
     echo "--fresh will delete ${#old[@]} result/log file(s) and the request cache in cache/."
     if ! $yes; then
@@ -58,6 +58,12 @@ if $fresh; then
   fi
   shopt -u nullglob
 fi
+
+# Memory samples for the whole run (VRAM, system RAM, Ollama's RSS); see mem_monitor.py.
+# Git Bash's $$ isn't a Windows pid; /proc/$$/winpid is.
+python mem_monitor.py --out results/mem-quality.csv --watch-pid "$(cat /proc/$$/winpid 2>/dev/null || echo $$)" &
+MON_PID=$!
+trap 'kill $MON_PID 2>/dev/null' EXIT
 
 MMLU27=mmlu_flan_cot_zeroshot_abstract_algebra,mmlu_flan_cot_zeroshot_clinical_knowledge,mmlu_flan_cot_zeroshot_college_mathematics,mmlu_flan_cot_zeroshot_conceptual_physics,mmlu_flan_cot_zeroshot_formal_logic,mmlu_flan_cot_zeroshot_high_school_computer_science,mmlu_flan_cot_zeroshot_high_school_macroeconomics,mmlu_flan_cot_zeroshot_high_school_psychology,mmlu_flan_cot_zeroshot_human_aging,mmlu_flan_cot_zeroshot_logical_fallacies,mmlu_flan_cot_zeroshot_medical_genetics,mmlu_flan_cot_zeroshot_nutrition,mmlu_flan_cot_zeroshot_professional_law,mmlu_flan_cot_zeroshot_security_studies,mmlu_flan_cot_zeroshot_world_religions
 
